@@ -1,0 +1,8 @@
+library(vkR)
+library(httr)
+library(rjson)
+library(tidyr)
+library(jsonlite)
+library(dplyr)
+library(ggplot2)
+library(lintr)
