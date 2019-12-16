@@ -48,7 +48,7 @@ colnames(members) <- c("Members")
 #Vtoroy zapros k API dly poluchenia postov i informacii po nim
 for (row in 1:nrow(publics)) {
   adress <- publics[row, 2]
-  members <- members[row, 1]
+  members_proxy <- members[row, 1]
   api_call <- "https://api.vk.com/method/wall.get?domain="
   api_call_2 <- "&extended=1&count=25&v=5.103&access_token="
   api_call <- paste0(api_call, adress, api_call_2, api_key)
@@ -62,7 +62,7 @@ for (row in 1:nrow(publics)) {
   id <- as.data.frame(parsed_final$response$items$id)
   owner_id <- as.data.frame((parsed_final$response$items$owner_id))
   public_name <- as.data.frame(replicate(25, adress))
-  members_count <- as.data.frame(replicate(25, members))
+  members_count <- as.data.frame(replicate(25, members_proxy))
   table_final_pr <- bind_cols(public_name, owner_id, id, likes, reposts, views, members_count)
   table_final <- rbind.data.frame(table_final, table_final_pr)
 }
@@ -76,7 +76,7 @@ for (row in 1:nrow(table_final)) {
   ssilka <- as.data.frame(paste0("https://vk.com/", ssilka1, "?w=wall", ssilka2, "_", ssilka3))
   urls <- rbind.data.frame(urls, ssilka)
 }
-colnames(urls) <- c("Url") 
+colnames(urls) <- c("Url")
 ahahamemes <- bind_cols(table_final, urls)
 
 #10 naibolee zalaikanih postov
@@ -102,7 +102,7 @@ ggplot(ahahamemes, aes(x = public_name, y = likes_num, col = reposts_num)) +
   geom_point() + geom_jitter(width = 0.15, height = 0) + 
   labs(title = "Суммарная статистика постов по пабликам")
 
-#Vizualization 2
+me#Vizualization 2
 ggplot(mapping = aes(x = likes_num, y = views_num, col = public_name)) + 
   geom_point(data = ahahamemes) + 
   labs(title = "Соотношение просмотров и лайков для разных пабликов")
