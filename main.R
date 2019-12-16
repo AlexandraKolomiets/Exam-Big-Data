@@ -44,3 +44,65 @@ for (row in 1:nrow(publics)) {
   members <- rbind(members, members_num)
 }
 colnames(members) <- c("Members")
+
+#Vtoroy zapros k API dly poluchenia postov i informacii po nim
+for (row in 1:nrow(publics)) {
+  adress <- publics[row, 2]
+  members <- members[row, 1]
+  api_call <- "https://api.vk.com/method/wall.get?domain="
+  api_call_2 <- "&extended=1&count=25&v=5.103&access_token="
+  api_call <- paste0(api_call, adress, api_call_2, api_key)
+  response <- GET(url = api_call)
+  parsed_con <- response[[6]]
+  parsed2 <- content(response, as = "text")
+  parsed_final <- fromJSON(parsed2)
+  likes <- as.data.frame(parsed_final$response$items$likes$count)
+  reposts <- as.data.frame(parsed_final$response$items$reposts$count)
+  views <- as.data.frame(parsed_final$response$items$views)
+  id <- as.data.frame(parsed_final$response$items$id)
+  owner_id <- as.data.frame((parsed_final$response$items$owner_id))
+  public_name <- as.data.frame(replicate(25, adress))
+  members_count <- as.data.frame(replicate(25, members))
+  table_final_pr <- bind_cols(public_name, owner_id, id, likes, reposts, views, members_count)
+  table_final <- rbind.data.frame(table_final, table_final_pr)
+}
+colnames(table_final) <- c("public_name", "owner_id", "id_num", "likes_num", "reposts_num", "views_num", "members")
+
+#Sozdanie ssilok na posti
+for (row in 1:nrow(table_final)) {
+  ssilka1 <- table_final[row, 1]
+  ssilka2 <- table_final[row, 2]
+  ssilka3 <- table_final[row, 3]
+  ssilka <- as.data.frame(paste0("https://vk.com/", ssilka1, "?w=wall", ssilka2, "_", ssilka3))
+  urls <- rbind.data.frame(urls, ssilka)
+}
+colnames(urls) <- c("Url") 
+ahahamemes <- bind_cols(table_final, urls)
+
+#10 naibolee zalaikanih postov
+memes_likes <- arrange(ahahamemes, desc(ahahamemes$likes_num))
+memes_likes <- head(memes_likes, 10)         
+
+#10 postov kotorimi delilis chashe vsego
+memes_reposts <- arrange(ahahamemes, desc(ahahamemes$reposts_num))
+memes_reposts <- head(memes_reposts, 10)
+
+#10 luchshih postov po sootnosheniu laiki/kov-vo podpischikov
+dushi <- within(ahahamemes, podush <- likes_num / members)
+dushi <- arrange(dushi, desc(dushi$podush))
+dushi <- head(dushi, 10)
+
+#10 luchshih postov po sootnosheniu laiki/prosmotri
+prosm <- within(ahahamemes, poprosm <- likes_num / views_num)
+prosm <- arrange(prosm, desc(prosm$poprosm))
+prosm <- head(prosm, 10)
+
+#Visualization 1
+ggplot(ahahamemes, aes(x = public_name, y = likes_num, col = reposts_num)) +
+  geom_point() + geom_jitter(width = 0.15, height = 0) + 
+  labs(title = "Суммарная статистика постов по пабликам")
+
+#Vizualization 2
+ggplot(mapping = aes(x = likes_num, y = views_num, col = public_name)) + 
+  geom_point(data = ahahamemes) + 
+  labs(title = "Соотношение просмотров и лайков для разных пабликов")
