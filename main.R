@@ -6,6 +6,7 @@ library(jsonlite)
 library(dplyr)
 library(ggplot2)
 library(lintr)
+
 #Avtorizacia dlya poluchenia API key
 vkOAuth(7225265, "photos")
 
